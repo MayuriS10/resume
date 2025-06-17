@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="fas fa-users me-2"></i>Parsed Resumes ({{ resumes|length }})</h2>
+        <p class="text-muted">View and analyze all uploaded resumes</p>
+    </div>
+</div>
+
+{% if resumes %}
+<div class="row">
+    <div class="col-12">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Phone</th>
+                        <th>Experience</th>
+                        <th>Skills</th>
+                        <th>Education</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for resume in resumes %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>
+                            <strong>{{ resume.name }}</strong>
+                            <br><small class="text-muted">{{ resume.filename }}</small>
+                        </td>
+                        <td>
+                            {% if resume.email %}
+                                <a href="mailto:{{ resume.email }}">{{ resume.email }}</a>
+                            {% else %}
+                                <span class="text-muted">Not found</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if resume.phone %}
+                                {{ resume.phone }}
+                            {% else %}
+                                <span class="text-muted">Not found</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge bg-primary">{{ resume.experience_years }} years</span>
+                        </td>
+                        <td>
+                            {% if resume.skills %}
+                                {% for skill in resume.skills[:3] %}
+                                    <span class="badge bg-secondary me-1">{{ skill }}</span>
+                                {% endfor %}
+                                {% if resume.skills|length > 3 %}
+                                    <span class="badge bg-light text-dark">+{{ resume.skills|length - 3 }} more</span>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">None found</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if resume.education %}
+                                {% for edu in resume.education %}
+                                    <span class="badge bg-info me-1">{{ edu }}</span>
+                                {% endfor %}
+                            {% else %}
+                                <span class="text-muted">None found</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-outline-primary" onclick="viewDetails({{ loop.index0 }})">
+                                <i class="fas fa-eye"></i> View
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Resume Detail Modal -->
+<div class="modal fade" id="resumeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Resume Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Content will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                <h4>{{ resumes|length }}</h4>
+                <p class="text-muted">Total Resumes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <i class="fas fa-briefcase fa-2x
