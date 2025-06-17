@@ -91,30 +91,21 @@ class ResumeParser:
     matches = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', text)
     return matches[0].strip() if matches else "N/A"
 
-   def extract_phone(self, text):
-    # Common phone patterns: +91 9876543210, (123) 456-7890, 98765-43210, 09876543210
-    patterns = [
-        r'(\+?\d{1,3}[\s\-]?)?(\(?\d{3,5}\)?[\s\-]?)?\d{3,5}[\s\-]?\d{3,5}',  # generic international formats
-        r'\b\d{10}\b',  # 10-digit number
-    ]
+  def extract_phone(self, text):
+    # Normalize non-breaking spaces and invisible chars
+    text = text.replace('\u202f', ' ').replace('\xa0', ' ')
+    
+    # Match formats: +91 9876543210, 98765-43210, 09876543210, etc.
+    pattern = r'(?:(?:\+|00)?(\d{1,3})[\s\-]*)?(\d{10})\b'
 
-    for pattern in patterns:
-        matches = re.findall(pattern, text)
-        flat = []
+    matches = re.findall(pattern, text)
 
-        # flatten if it's tuples
-        if matches and isinstance(matches[0], tuple):
-            flat = [''.join(m).strip() for m in matches]
-        elif matches:
-            flat = matches
-
-        for num in flat:
-            clean_num = re.sub(r'\D', '', num)
-            if 10 <= len(clean_num) <= 15:
-                return num.strip()
+    for match in matches:
+        country_code, number = match
+        if number:
+            return f"+{country_code} {number}" if country_code else number
 
     return "N/A"
-
 
     def extract_name(self, text):
         """Extract name (simple heuristic - first line or first few words)"""
