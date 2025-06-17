@@ -88,14 +88,16 @@ class ResumeParser:
             return ""
 
     def extract_email(self, text):
-        """Extract email addresses from text"""
-        emails = re.findall(self.email_pattern, text, re.IGNORECASE)
-        return emails[0] if emails else None
+    matches = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+    return matches[0].strip() if matches else "N/A"
 
     def extract_phone(self, text):
-        """Extract phone numbers from text"""
-        phones = re.findall(self.phone_pattern, text)
-        return phones[0] if phones else None
+    matches = re.findall(r'(\+?\d[\d\s\-().]{9,}\d)', text)
+    for match in matches:
+        digits = re.sub(r'\D', '', match)
+        if 10 <= len(digits) <= 15:
+            return match.strip()
+    return "N/A"
 
     def extract_name(self, text):
         """Extract name (simple heuristic - first line or first few words)"""
@@ -152,26 +154,50 @@ class ResumeParser:
         return total_months // 12 if total_months > 0 else 0
 
     def extract_skills(self, text):
-        """Extract technical skills from text"""
-        text_lower = text.lower()
-        found_skills = []
-        
-        for skill in self.tech_skills:
-            if skill.lower() in text_lower:
-                found_skills.append(skill)
-        
-        return found_skills
+    skill_section = ""
+    lines = text.splitlines()
+    found = False
+    for line in lines:
+        if any(h in line.lower() for h in ['skills', 'technical skills', 'skill set']):
+            found = True
+            continue
+        if found:
+            if line.strip() == "" or any(h in line.lower() for h in ['experience', 'education', 'projects']):
+                break
+            skill_section += line + " "
 
-    def extract_education(self, text):
-        """Extract education information"""
-        text_lower = text.lower()
-        education_info = []
-        
-        for level in self.education_levels:
-            if level in text_lower:
-                education_info.append(level)
-        
-        return education_info
+    keywords = [
+        "python", "sql", "excel", "r", "java", "c++", "tableau", "power bi", "machine learning",
+        "deep learning", "aws", "azure", "gcp", "flask", "django", "html", "css", "javascript",
+        "pandas", "numpy", "scikit-learn", "tensorflow", "keras"
+    ]
+
+    found_skills = [skill for skill in keywords if re.search(rf'\\b{skill}\\b', skill_section.lower())]
+    return sorted(list(set(found_skills)))
+
+
+   def extract_education(self, text):
+    education_section = ""
+    lines = text.splitlines()
+    found = False
+    for line in lines:
+        if any(h in line.lower() for h in ['education', 'academic background', 'qualification']):
+            found = True
+            continue
+        if found:
+            if line.strip() == "" or any(h in line.lower() for h in ['experience', 'skills', 'projects']):
+                break
+            education_section += line + " "
+
+    keywords = [
+        "phd", "ph.d", "doctorate", "mba", "master", "m.sc", "mtech", "ms",
+        "bachelor", "b.sc", "btech", "be", "bs", "ba", "b.com", "bca", "bba",
+        "mca", "10th", "12th", "ssc", "hsc", "intermediate", "graduation", "post graduation"
+    ]
+
+    found_degrees = [deg for deg in keywords if deg in education_section.lower()]
+    return sorted(list(set(found_degrees)))
+
 
     def parse_resume(self, file_bytes, filename):
         """Main function to parse resume and extract information"""
