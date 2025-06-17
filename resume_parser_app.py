@@ -8,6 +8,7 @@ from docx import Document
 import pandas as pd
 from collections import defaultdict
 import tempfile
+import pdfplumber
 
 # Set page config
 st.set_page_config(
@@ -47,26 +48,23 @@ class ResumeParser:
         ]
 
     def extract_text_from_pdf(self, file_bytes):
-        """Extract text from PDF file bytes"""
-        try:
-            # Create a temporary file
-            with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
-                tmp_file.write(file_bytes)
-                tmp_file_path = tmp_file.name
-            
-            with open(tmp_file_path, 'rb') as file:
-                reader = PyPDF2.PdfReader(file)
-                text = ""
-                for page in reader.pages:
-                    text += page.extract_text()
-            
-            # Clean up temporary file
-            os.unlink(tmp_file_path)
-            return text
-        except Exception as e:
-            st.error(f"Error reading PDF: {e}")
-            return ""
-
+    """Extract text from PDF using pdfplumber for better accuracy"""
+    try:
+        with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
+            tmp_file.write(file_bytes)
+            tmp_file_path = tmp_file.name
+        
+        text = ""
+        with pdfplumber.open(tmp_file_path) as pdf:
+            for page in pdf.pages:
+                text += page.extract_text() or ""
+        
+        os.unlink(tmp_file_path)
+        return text
+    except Exception as e:
+        st.error(f"Error reading PDF: {e}")
+        return ""
+        
     def extract_text_from_docx(self, file_bytes):
         """Extract text from DOCX file bytes"""
         try:
