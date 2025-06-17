@@ -435,7 +435,11 @@ def main():
         # Experience distribution
         st.subheader("Experience Distribution")
         exp_data = [r['experience_years'] for r in st.session_state.resume_data]
-        st.bar_chart(pd.DataFrame({'Experience (Years)': exp_data}).value_counts().sort_index())
+        exp_series = pd.Series(exp_data, name="Experience")
+        exp_counts = exp_series.value_counts().sort_index()
+        exp_df = pd.DataFrame({"Experience (Years)": exp_counts.index, "Count": exp_counts.values})
+        st.bar_chart(exp_df.set_index("Experience (Years)"))
+
         
         # Skills analysis
         st.subheader("Top Skills")
