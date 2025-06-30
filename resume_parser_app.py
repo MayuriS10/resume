@@ -86,7 +86,7 @@ def extract_text_from_pdf(self, file_bytes):
             return ""
 
     def extract_email(self, text):
-    matches = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', text)
+        matches = re.findall(r'[\w\.-]+@[\w\.-]+\.\w+', text)
     return matches[0].strip() if matches else "N/A"
 
   def extract_phone(self, text):
