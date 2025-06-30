@@ -29,7 +29,6 @@ class ResumeParser:
             r'experience[:\s]*(\d+)[\s\+]*(?:years?|yrs?)',
             r'(\d+)[\s\+]*(?:years?|yrs?)',
         ]
-
         self.tech_skills = [
             'python', 'java', 'javascript', 'react', 'angular', 'vue', 'node',
             'django', 'flask', 'spring', 'html', 'css', 'sql', 'mongodb',
@@ -37,7 +36,6 @@ class ResumeParser:
             'azure', 'gcp', 'machine learning', 'data science', 'ai',
             'tensorflow', 'pytorch', 'pandas', 'numpy', 'scikit-learn'
         ]
-
         self.education_levels = [
             'phd', 'ph.d', 'doctorate', 'masters', 'master', 'mba', 'ms', 'ma',
             'bachelor', 'bachelors', 'bs', 'ba', 'btech', 'be', 'diploma'
@@ -177,3 +175,59 @@ class ResumeParser:
 
 # Initialize parser
 parser = ResumeParser()
+
+# Streamlit App Logic
+def main():
+    st.title("📄 Resume Parser & Analyzer")
+    st.markdown("Upload resumes and ask questions about the data!")
+
+    page = st.sidebar.selectbox("Choose a page", ["Upload & Parse", "Query Data", "View Resumes", "Analytics"])
+
+    if page == "Upload & Parse":
+        st.header("Upload Resumes")
+        uploaded_files = st.file_uploader("Upload resume files", type=["pdf", "docx", "doc"], accept_multiple_files=True)
+        if uploaded_files:
+            if st.button("Parse Resumes"):
+                for file in uploaded_files:
+                    parsed = parser.parse_resume(file.read(), file.name)
+                    if parsed:
+                        st.session_state.resume_data.append(parsed)
+                st.success("Resumes parsed and stored.")
+        st.info(f"Total resumes stored: {len(st.session_state.resume_data)}")
+
+    elif page == "Query Data":
+        st.header("Ask Questions")
+        query = st.text_input("Enter your query")
+        if query:
+            st.write("**Feature under development.**")
+
+    elif page == "View Resumes":
+        st.header("View Parsed Resumes")
+        if not st.session_state.resume_data:
+            st.warning("No resumes uploaded yet.")
+            return
+        df = pd.DataFrame([{k: v for k, v in r.items() if k != 'raw_text'} for r in st.session_state.resume_data])
+        st.dataframe(df)
+
+    elif page == "Analytics":
+        st.header("Analytics")
+        if not st.session_state.resume_data:
+            st.warning("No data to analyze.")
+            return
+
+        df = pd.DataFrame(st.session_state.resume_data)
+        st.subheader("Experience Distribution")
+        st.bar_chart(df['experience_years'].value_counts().sort_index())
+
+        st.subheader("Top Skills")
+        all_skills = [skill for r in st.session_state.resume_data for skill in r['skills']]
+        skill_counts = pd.Series(all_skills).value_counts().head(10)
+        st.bar_chart(skill_counts)
+
+        st.subheader("Education Distribution")
+        all_edu = [edu for r in st.session_state.resume_data for edu in r['education']]
+        edu_counts = pd.Series(all_edu).value_counts()
+        st.bar_chart(edu_counts)
+
+if __name__ == "__main__":
+    main()
