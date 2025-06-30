@@ -47,7 +47,7 @@ class ResumeParser:
             'bachelor', 'bachelors', 'bs', 'ba', 'btech', 'be', 'diploma'
         ]
 
-    def extract_text_from_pdf(self, file_bytes):
+def extract_text_from_pdf(self, file_bytes):
     """Extract text from PDF using pdfplumber for better accuracy"""
     try:
         with tempfile.NamedTemporaryFile(delete=False, suffix='.pdf') as tmp_file:
