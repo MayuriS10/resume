@@ -116,5 +116,4 @@ elif menu == "Analytics":
         st.metric("Total Resumes", len(df))
         st.metric("Avg Experience", f"{df['experience_years'].mean():.1f} yrs")
         
-if __name__ == "__main__":
-    main()
+
